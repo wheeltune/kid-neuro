@@ -43,7 +43,7 @@ class KeystrokesEncoder(nn.Module):
 
     #---------------------------------------------------------------------------
     def forward(self, x):
-        times = self.batch_norm_1(x)
+        x = self.batch_norm_1(x)
 
         x, _ = self.rnn_1(x)
 

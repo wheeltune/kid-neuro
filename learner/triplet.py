@@ -58,15 +58,16 @@ class KeystrokesTripletLearner(pl.LightningModule):
     #---------------------------------------------------------------------------
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self._lr)
-        scheduler = {
-            'scheduler': torch.optim.lr_scheduler.ReduceLROnPlateau(
-                optimizer,
-                'min',
-                factor=0.5,
-                patience=25,
-                min_lr=1e-8),
-            'monitor': 'test_loss'
-        }
-        return [optimizer], [scheduler]
+        return [optimizer]
+        # scheduler = {
+        #     'scheduler': torch.optim.lr_scheduler.ReduceLROnPlateau(
+        #         optimizer,
+        #         'min',
+        #         factor=0.5,
+        #         patience=25,
+        #         min_lr=1e-4),
+        #     'monitor': 'test_loss'
+        # }
+        # return [optimizer], [scheduler]
 
 #===============================================================================

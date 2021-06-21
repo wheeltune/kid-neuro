@@ -184,7 +184,7 @@ class KeystrokeSample:
 class KeystrokesDataset(Dataset):
 
     #---------------------------------------------------------------------------
-    def __init__(self, path, mode='train', key_encoder='coord', min_length=10, max_length=50, use_augmentation=False):
+    def __init__(self, path, mode='train', key_encoder='coord', min_length=30, max_length=50, use_augmentation=False, padding='bottom'):
         if mode not in ['train', 'test']:
             raise Exception(f"bad mode {mode}")
 
@@ -194,6 +194,7 @@ class KeystrokesDataset(Dataset):
         self._root_path = Path(path)
         self._mode = mode
         self._use_augmentation = use_augmentation
+        self._padding = padding
 
         self._index_root = self._root_path.parent / f"{self._root_path.name}.index" / self._mode
         if self._index_root.exists():
@@ -213,7 +214,7 @@ class KeystrokesDataset(Dataset):
 
             for record in (user_folder / self._mode).iterdir():
                 record_id = int(record.stem)
-                
+
                 self._samples.append(KeystrokeSample(record_id, user_label))
                 record = self._parse_record(self._samples[-1])
 
@@ -246,7 +247,7 @@ class KeystrokesDataset(Dataset):
         time_features = np.zeros((len(codes), 4), dtype='float')
         time_features[1:, 0] = times[1:, 0] - times[:-1, 0]
         time_features[ :, 1] = times[ :, 1] - times[:  , 0]
-        time_features[1:, 2] = times[1:, 1] - times[:-1, 0]
+        time_features[1:, 2] = times[1:, 0] - times[:-1, 1]
         time_features[1:, 3] = times[1:, 1] - times[:-1, 1]
         time_features /= 1000
 
@@ -274,7 +275,8 @@ class KeystrokesDataset(Dataset):
         if self._use_augmentation:
             record = self._make_augmention(record)
 
-        record = pad_tensor(record, self._max_length, 'bottom')
+        if self._padding is not None:
+            record = pad_tensor(record, self._max_length, self._padding)
         return record
 
     #---------------------------------------------------------------------------
@@ -293,7 +295,8 @@ class KeystrokesDataset(Dataset):
             record[0][-2] = 0.0
             record[0][-1] = 0.0
 
-        return record
+        size = min(self._max_length, len(record))
+        return record[:size]
 
     #---------------------------------------------------------------------------
     def __len__(self):
